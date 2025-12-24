@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elite Performance Recruitment Assessment</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        :root {
+            --primary: #1a2a6c;
+            --secondary: #b21f1f;
+            --accent: #fdbb2d;
+            --bg: #f4f7f6;
+            --text: #333;
+        }
+
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; margin: 0; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; background: white; padding: 40px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        
+        h1, h2 { color: var(--primary); text-align: center; text-transform: uppercase; letter-spacing: 2px; }
+        .section-header { background: var(--primary); color: white; padding: 15px; margin-top: 30px; border-radius: 4px; font-weight: bold; }
+        
+        .question { margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
+        .question p { font-weight: 600; margin-bottom: 10px; }
+        
+        .options { display: flex; flex-direction: column; gap: 10px; }
+        label { background: #f9f9f9; padding: 12px; border: 1px solid #ddd; border-radius: 6px; cursor: pointer; transition: 0.3s; }
+        label:hover { background: #eef2ff; border-color: var(--primary); }
+        input[type="radio"] { margin-right: 10px; }
+
+        #coach-section { display: none; margin-top: 50px; border: 4px dashed var(--secondary); padding: 30px; border-radius: 10px; background: #fff8f8; }
+        .coach-only-tag { color: var(--secondary); font-weight: bold; text-align: center; font-size: 1.2rem; margin-bottom: 20px; }
+
+        .btn-container { display: flex; justify-content: center; gap: 20px; margin-top: 40px; }
+        button { padding: 15px 30px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 1rem; transition: 0.3s; }
+        .btn-calc { background: var(--primary); color: white; }
+        .btn-print { background: var(--secondary); color: white; }
+        .btn-coach { background: #444; color: white; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: var(--primary); color: white; }
+
+        textarea { width: 100%; height: 100px; padding: 10px; border-radius: 5px; border: 1px solid #ddd; margin-top: 10px; }
+
+        /* Print formatting */
+        .pdf-page { page-break-before: always; padding: 20px; }
+        .pdf-page:first-child { page-break-before: auto; }
+    </style>
+</head>
+<body>
+
+<div class="container" id="assessment-content">
+    <h1>Elite Performance Assessment</h1>
+    <p style="text-align: center;">KVC Westerlo Recruitment - 2025/2026 Season</p>
+
+    <div class="section-header">Player Information</div>
+    <div class="question">
+        <p>Full Name:</p>
+        <input type="text" id="playerName" style="width: 97%; padding: 10px;">
+        <p>Position (e.g., Attack, LB/RB, Midfield):</p>
+        <input type="text" id="playerPosition" style="width: 97%; padding: 10px;">
+    </div>
+
+    <div class="section-header">Section 1: Core Mindset & Self-Belief</div>
+    <div id="section1-questions"></div>
+
+    <div class="section-header">Section 2: Communication & Leadership</div>
+    <div id="section2-questions"></div>
+
+    <div class="section-header">Section 3: NLP & Representational System</div>
+    <div id="section3-questions"></div>
+
+    <div class="section-header">Section 4: Behavioral Discipline & Accountability</div>
+    <div id="section4-questions"></div>
+
+    <div class="section-header">Section 5: Crisis Leadership & Resilience</div>
+    <div id="section5-questions"></div>
+
+    <div class="btn-container">
+        <button class="btn-coach" onclick="unlockCoach()">Coach Access</button>
+    </div>
+
+    <div id="coach-section">
+        <div class="coach-only-tag">CONFIDENTIAL: COACH ONLY SECTION</div>
+        
+        <h2>Scoring Results</h2>
+        <div id="result-display"></div>
+        
+        <div class="pdf-page">
+            <h2>Calculated Profile Matrix</h2>
+            <table id="scoringTable">
+                <thead>
+                    <tr><th>Personality Segment</th><th>E / I</th><th>S / N</th><th>T / F</th><th>J / P</th></tr>
+                </thead>
+                <tbody id="scoringBody"></tbody>
+            </table>
+        </div>
+
+        <div class="pdf-page">
+            <h2>Doubt-Trap Interview Scenarios</h2>
+            <div id="interview-scenarios">
+                <div class="question">
+                    <p>1. The Physical Drain: How is their vocal energy after high exertion?</p>
+                    <textarea placeholder="Observe Outcome Frame clarity when breathless..."></textarea>
+                </div>
+                <div class="question">
+                    <p>2. Unfair Criticism Anchor: Reaction to mischaracterized past performance?</p>
+                    <textarea placeholder="Notes on defensive vs logical response..."></textarea>
+                </div>
+                <div class="question">
+                    <p>3. Incomplete Map: Reaction speed and natural leadership style?</p>
+                    <textarea placeholder="Did they lead without permission? VK focus?"></textarea>
+                </div>
+            </div>
+            <h3>Overall Coach Comments:</h3>
+            <textarea id="coachComments"></textarea>
+        </div>
+    </div>
+
+    <div class="btn-container">
+        <button class="btn-calc" onclick="calculateProfile()">Generate Profile</button>
+        <button class="btn-print" onclick="printPDF()">Print PDF Report</button>
+    </div>
+</div>
+
+<script>
+    // 50 Questions Data (Simplified structure for JS)
+    const questions = [
+        // Format: [Section#, "Question", {a: "val", b: "val"...}, "JungMapping"]
+        [1, "When I face a major setback, my internal monologue is:", {a: "Fixed", b: "F", c: "T", d: "Avoidant"}, "TF"],
+        [1, "Which phrase best describes your relationship with failure?", {a: "Wall", b: "F", c: "N", d: "Temp"}, "SN"],
+        [1, "If you were dropped from the starting lineup, you would:", {a: "Passive", b: "F", c: "T", d: "Analytical"}, "TF"],
+        [1, "My self-belief is most stable when:", {a: "Praise", b: "J", c: "F", d: "Winning"}, "JP"],
+        [1, "After a bad mistake that costs a goal, I:", {a: "I", b: "Reassure", c: "P", d: "Apology"}, "JP"],
+        [1, "A 'Growth Mindset' means to me:", {a: "J", b: "N", c: "Talent", d: "Avoidance"}, "SN"],
+        [1, "When you are physically exhausted in the 85th minute, you think:", {a: "Fear", b: "Survival", c: "T", d: "Support"}, "TF"],
+        [1, "I feel most confident when:", {a: "Familiar", b: "N", c: "F", d: "Advantage"}, "SN"],
+        [1, "If a teammate criticizes me harshly on the pitch, I:", {a: "Defensive", b: "T", c: "Drop", d: "Wait"}, "TF"],
+        [1, "Success is defined by:", {a: "Score", b: "J", c: "Status", d: "Harmony"}, "JP"],
+
+        [2, "In a silent locker room after a loss, the best action is:", {a: "I", b: "E", c: "Analytical", d: "Passive"}, "EI"],
+        [2, "When communicating instructions on the pitch, I prefer:", {a: "I", b: "E", c: "Small", d: "Stop"}, "EI"],
+        [2, "A teammate is panicking during high pressure. I:", {a: "Avoid", b: "F", c: "T", d: "Hope"}, "TF"],
+        [2, "My natural role in a group of strangers is:", {a: "I", b: "E", c: "Spec", d: "Follow"}, "EI"],
+        [2, "If I see a teammate skipping a cone in a drill, I:", {a: "Ignore", b: "T", c: "Follow", d: "Private"}, "TF"],
+        [2, "I believe Solidarity is built by:", {a: "F", b: "T", c: "Silent", d: "Winning"}, "TF"],
+        [2, "When the ref makes a mistake, I:", {a: "Chase", b: "E", c: "Aggressive", d: "Look"}, "EI"],
+        [2, "I use my voice on the pitch to:", {a: "Frustrate", b: "E", c: "Demand", d: "Info"}, "EI"],
+        [2, "In a 'Meet and Greet', I find small talk:", {a: "I", b: "E", c: "Duty", d: "Easy"}, "EI"],
+        [2, "If the coach asks for an opinion in a meeting, I:", {a: "Wait", b: "E", c: "Passive", d: "Direct"}, "EI"],
+
+        [3, "When I learn a new tactic, I need to:", {a: "Listen", b: "S", c: "Read", d: "Emotion"}, "SN"],
+        [3, "When I recall my best performance, I mostly remember:", {a: "Words", b: "S", c: "Sounds", d: "Emotion"}, "SN"],
+        [3, "If I have to fix a technical error, I prefer to:", {a: "S", b: "Talk", c: "Nature", d: "Stats"}, "SN"],
+        [3, "During a match, my focus is mostly on:", {a: "S", b: "Bench", c: "I", d: "Emotion"}, "SN"],
+        [3, "Style in three words:", {a: "J", b: "F", c: "E", d: "Talent"}, "EI"],
+        [3, "When a coach says 'Don't make a foul', I:", {a: "Literal", b: "N", c: "Nervous", d: "Hope"}, "SN"],
+        [3, "I prefer video analysis that is:", {a: "Tech", b: "N", c: "Mistake", d: "Group"}, "SN"],
+        [3, "My intuition on the pitch feels like:", {a: "Voice", b: "N", c: "Logic", d: "Adren"}, "SN"],
+        [3, "To get 'in the zone', I need:", {a: "I", b: "S", c: "KPIs", d: "Visual"}, "SN"],
+        [3, "I understand a teammate's intention by:", {a: "Yell", b: "S", c: "Pers", d: "Plan"}, "SN"],
+
+        [4, "My phone policy in high-performance zones:", {a: "Connect", b: "J", c: "Mirror", d: "Music"}, "JP"],
+        [4, "If the team is 3-0 up, my intensity level:", {a: "Save", b: "J", c: "Depend", d: "Show"}, "JP"],
+        [4, "Arriving 'on time' means:", {a: "Walking", b: "J", c: "Majority", d: "Last"}, "JP"],
+        [4, "I handle personal praise from media by:", {a: "Read", b: "J", c: "Share", d: "Relief"}, "JP"],
+        [4, "If a coach correction occurs in a drill, I:", {a: "Insult", b: "P", c: "Explain", d: "Nod"}, "JP"],
+        [4, "A complete professional is someone who:", {a: "Talent", b: "J", c: "Silent", d: "Popular"}, "JP"],
+        [4, "When the team travels, I spend my time:", {a: "I", b: "E", c: "Sleep", d: "Clique"}, "EI"],
+        [4, "I believe rules and protocols are:", {a: "Bend", b: "J", c: "Control", d: "Anxiety"}, "JP"],
+        [4, "If I am injured, my role is:", {a: "I", b: "E", c: "Avoid", d: "Wait"}, "EI"],
+        [4, "I judge my performance based on:", {a: "Score", b: "J", c: "Social", d: "Feeling"}, "JP"],
+
+        [5, "Losing 3-1 late game. I:", {a: "Protect", b: "P", c: "Hope", d: "Blame"}, "JP"],
+        [5, "I believe a 'Crisis' on the pitch is:", {a: "Fail", b: "T", c: "Survive", d: "LowPerf"}, "TF"],
+        [5, "After a goal is conceded, my physical reaction is:", {a: "I", b: "E", c: "Angry", d: "Look"}, "EI"],
+        [5, "A 'Warrior' is someone who:", {a: "Aggr", b: "T", c: "Empty", d: "Loud"}, "TF"],
+        [5, "If the coach is getting angry, I:", {a: "Nervous", b: "T", c: "Ignore", d: "Pers"}, "TF"],
+        [5, "I handle a relapse of doubt by:", {a: "Praise", b: "T", c: "Hope", d: "Avoid"}, "TF"],
+        [5, "Under possession pressure, I feel:", {a: "Panic", b: "T", c: "Bored", d: "Angry"}, "TF"],
+        [5, "A leader's job after a loss is:", {a: "Blame", b: "F", c: "Silent", d: "Defend"}, "TF"],
+        [5, "My fighting spirit is triggered by:", {a: "Embarr", b: "F", c: "Money", d: "Hero"}, "TF"],
+        [5, "If I could change one thing about the team:", {a: "Talent", b: "E", c: "Comfort", d: "Off"}, "EI"]
+    ];
+
+    function renderQuestions() {
+        questions.forEach((q, index) => {
+            const div = document.createElement('div');
+            div.className = 'question';
+            div.innerHTML = `
+                <p>${index + 1}. ${q[1]}</p>
+                <div class="options">
+                    ${Object.entries(q[2]).map(([key, val]) => `
+                        <label>
+                            <input type="radio" name="q${index}" value="${val}" required>
+                            ${val}
+                        </label>
+                    `).join('')}
+                </div>
+            `;
+            document.getElementById(`section${q[0]}-questions`).appendChild(div);
+        });
+    }
+
+    function unlockCoach() {
+        const pass = prompt("Enter Coach Credentials:");
+        if(pass === "kvc2025") {
+            document.getElementById('coach-section').style.display = 'block';
+            window.scrollTo(0, document.getElementById('coach-section').offsetTop);
+        } else {
+            alert("Unauthorized Access.");
+        }
+    }
+
+    function calculateProfile() {
+        let scores = { E:0, I:0, S:0, N:0, T:0, F:0, J:0, P:0 };
+        const totalQs = questions.length;
+        
+        questions.forEach((q, i) => {
+            const selected = document.querySelector(`input[name="q${i}"]:checked`);
+            if(selected) {
+                const val = selected.value;
+                if(val === "E") scores.E++;
+                if(val === "I") scores.I++;
+                if(val === "S") scores.S++;
+                if(val === "N") scores.N++;
+                if(val === "T") scores.T++;
+                if(val === "F") scores.F++;
+                if(val === "J") scores.J++;
+                if(val === "P") scores.P++;
+            }
+        });
+
+        const profile = [
+            scores.E >= scores.I ? "E" : "I",
+            scores.S >= scores.N ? "S" : "N",
+            scores.T >= scores.F ? "T" : "F",
+            scores.J >= scores.P ? "J" : "P"
+        ].join('');
+
+        const profileNames = {
+            "ESTP": "The Dynamo (Elite Attacker/Fullback Fit)",
+            "ENTJ": "The Commander (Defensive Midfield Fit)",
+            "ESFP": "The Performer (Offensive Midfield Fit)",
+            "ENFJ": "The Protagonist (Vocal Leader Fit)"
+        };
+
+        document.getElementById('result-display').innerHTML = `
+            <h3>Final Calculated Profile: ${profile}</h3>
+            <p><strong>Diagnosis:</strong> ${profileNames[profile] || "Mixed Profile - Review Specific Section Scores Below"}</p>
+        `;
+
+        document.getElementById('scoringBody').innerHTML = `
+            <tr><td>Energy</td><td>${scores.E} vs ${scores.I}</td><td>${scores.S} vs ${scores.N}</td><td>${scores.T} vs ${scores.F}</td><td>${scores.J} vs ${scores.P}</td></tr>
+        `;
+    }
+
+    function printPDF() {
+        const element = document.getElementById('assessment-content');
+        const opt = {
+            margin:       10,
+            filename:     'KVC_Performance_Report.pdf',
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2 },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+        html2pdf().from(element).set(opt).save();
+    }
+
+    renderQuestions();
+</script>
+
+</body>
+</html>
